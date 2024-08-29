@@ -1,0 +1,12 @@
+hostname
+id
+sudo apt update
+ifconfig
+sudo apt install net-tools vim openssh-server
+ifconfig
+ping -c 2 192.168.56.1
+ping -c 2 8.8.8.8
+
+tom
+1234
+ifconfig

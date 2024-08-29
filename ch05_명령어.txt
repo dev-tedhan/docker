@@ -1,0 +1,133 @@
+~$ docker images
+~$ docker image ls
+~$ docker pull centos:7
+~$ docker info | grep Username
+~$ docker pull ubuntu:22.04
+~$ docker run -it --name=sys-container-1 centos:7 echo 'welcome to centos'
+~$ docker ps -a
+~$ docker rm sys-container-1
+~$ docker run -it --name=sys-container-1 centos:7 bash
+# cat /etc/os-release
+# pwd
+# ls
+# ifconfig
+# ping 8.8.8.8
+putty ~$ docker ps
+# exit
+putty ~$ docker ps -a
+putty ~$ docker start sys-container-1
+putty ~$ docker ps -a
+~$ docker exec -it sys-container-1 bash
+# Ctrl + p, q
+~$ docker run -it --name=sys-container-2 ubuntu:22.04 bash
+# cat /etc/os-release
+# ifconfig
+# ping 8.8.8.8
+# apt update
+# apt -y install net-tools
+# ifconfig
+putty ~$ ifconfig
+putty ~$ docker ps -a
+# apt -y install iputils-ping
+# ping 8.8.8.8
+putty ~$ docker inspect sys-container-1 | grep -i ipa
+putty ~$ docker inspect sys-container-2 | grep -i ipa
+# Ctrl + p, q
+~$ docker ps -a
+~$ ifconfig
+~$ docker ps -a
+
+https://hub.docker.com/
+
+~$ docker pull nginx:1.27.1-alpine
+~$ docker pull nginx:1.27.1
+~$ docker images
+putty ~$ docker image history nginx:1.27.1-alpine
+	<missing>      2 weeks ago   EXPOSE map[80/tcp:{}]                           0B        buildkit.dockerfile.v0
+
+~$ docker run -d -p 9000:80 --name=webserver1 nginx:1.27.1-alpine
+~$ docker port webserver1
+~$ curl localhost:9000
+
+browser url : http://192.168.56.101:9000/
+
+~$ sudo netstat -nlp | grep 9000
+	tcp        0      0 0.0.0.0:9000            0.0.0.0:*               LISTEN      4360/docker-proxy
+	tcp6       0      0 :::9000                 :::*                    LISTEN      4368/docker-proxy
+~$ ps -ef | grep 4360
+putty ~$ docker inspect webserver1 | grep -i ipa
+~$ mkdir workspace && cd $_
+~$ vi index.html
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Docker Container</title>
+    </head>
+    <body>
+        <h1>Sample Application</h1>
+    </body>
+</html>
+
+:wq
+
+~$ docker cp index.html webserver1:/usr/share/nginx/html/index.html
+
+browser url : http://192.168.56.101:9000/
+
+~$ vi index-with-logo.html
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Docker Container</title>
+        <style>
+            h1 {
+                margin: 0 auto;
+                width: 800px;
+                min-height: 400px;
+                background-image: url("./docker.png");
+                background-size: 100% 100%;
+                background-repeat: no-repeat;
+                background-position: center;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Sample Application</h1>
+    </body>
+</html>
+
+~$ docker cp index-with-logo.html webserver1:/usr/share/nginx/html/index.html
+
+winSCP: docker.png 이동
+
+~$ docker cp docker.png webserver1:/usr/share/nginx/html/docker.png
+
+browser url : http://192.168.56.101:9000/
+
+~$ mkdir work01 && cd $_
+~$ vi Dockerfile
+
+FROM nginx:1.27.1-alpine
+COPY index-with-logo.html /usr/share/nginx/html/index.html
+COPY docker.png /usr/share/nginx/html/docker.png
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+
+~$ mv ../index-with-logo.html .
+~$ mv ../docker.png .
+~$ cat Dockerfile
+~$ docker build -t myapp:v1.0 .
+~$ docker images
+~$ docker rmi [IMAGE ID]
+~$ docker images
+~$ docker build -t myapp:1.0 .
+~$ docker run -d --name=webserver2 -p 9001:80 myapp:1.0
+~$ docker ps
+~$ curl localhost:9001
+
+browser url : http://192.168.56.101:9001/

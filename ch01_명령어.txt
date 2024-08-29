@@ -1,0 +1,17 @@
+docker images
+docker pull nginx:1.23.1-alpine
+docker images
+docker run -d -p 9000:80 --name=webserver1
+docker ps
+curl localhost:9000
+docker ps
+docker stop webserver1
+docker ps
+docker ps -a
+docker rm webserver1
+docker ps -a
+docker run -d -p 80:80 --name=pwd-container docker/getting-started:pwd
+docker images
+docker ps
+curl localhost
+docker ps
