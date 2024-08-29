@@ -131,3 +131,20 @@ CMD ["nginx", "-g", "daemon off;"]
 ~$ curl localhost:9001
 
 browser url : http://192.168.56.101:9001/
+
+~$ git clone -b workspace https://github.com/dev-tedhan/docker.git
+~$ cd docker
+~$ cd a_container
+~$ cat Dockerfile
+~$ docker build -t myapp:1.1 .
+~$ docker images
+~$ docker run -d --name=webserver3 -p 9002:80 myapp:1.1
+~$ docker ps
+~$ curl localhost:9002
+
+browser url : http://192.168.56.101:9002/
+
+~$ docker pull mysql:8.0.30
+~$ docker images
+~$ docker run --name mysql-container -e MYSQL_ROOT_PASSWORD=1234 -d -p 3306:3306 mysql:8.0.30
+~$ docker exec -it mysql-container bash
