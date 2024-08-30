@@ -148,3 +148,12 @@ browser url : http://192.168.56.101:9002/
 ~$ docker images
 ~$ docker run --name mysql-container -e MYSQL_ROOT_PASSWORD=1234 -d -p 3306:3306 mysql:8.0.30
 ~$ docker exec -it mysql-container bash
+# mysql -u root -p
+> create database container;
+> create table tbl_product(id bigint auto_increment primary key, name varchar(255), price int);
+> insert into tbl_product(name, price) values('computer', 1290000);
+> select * from tbl_product;
+> Ctrl + p, q
+~$ docker inspect mysql-container | grep -i ipa
+
+workbanch connect: Ref- oracle_virtual_box70.png

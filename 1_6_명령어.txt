@@ -1,0 +1,14 @@
+Install Portainer
+https://docs.portainer.io/start/install-ce/server/docker/linux
+
+~$ docker pull portainer/portainer-ce
+~$ docker volume create portainer_data
+~$ docker run -d -p 8000:8000 -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:2.21.0
+
+https://192.168.56.101:9443/
+
+password: portainer1234
+
+~$ docker run -it --name=ubuntu-server ubuntu:22.04
+
+browser url : http://192.168.56.101:32768/
