@@ -1,0 +1,166 @@
+~$ docker pull busybox
+~$ docker images
+~$ docker pull gcr.io/google-samples/hello-app:1.0
+~$ docker images
+~$ docker pull httpd
+~$ docker image inspect httpd:latest
+~$ docker image inspect --format="{{.Os}}" httpd:latest
+~$ docker image inspect --format="{{.RepoTags}}" httpd:latest
+~$ docker image inspect --format="{{.RepoTags}} {{.Os}}" httpd:latest
+~$ docker history httpd:latest
+~$ docker history httpd:latest --no-trunc
+
+https://hub.docker.com/
+
+~$ docker history httpd:latest --no-trunc > http.txt
+
+~$ sudo su -
+~$ cd /var/lib/docker/image/overlay2/distribution/diffid-by-digest/sha256/
+~$ ls
+~$ sudo su tom
+~$ cd ~
+
+~$ docker login -u devtedhan
+~$ cat /home/tom/.docker/config.json
+
+※ 비밀번호가 그대로 나오기 때문에 실행하지 말 것!
+~$ echo [인코딩된 문자열] | base64 -d
+
+~$ docker login
+	https://login.docker.com/activate
+	Your one-time device confirmation code is:
+
+~$ docker logout
+~$ vi .access_token
+	토큰 붙여넣기
+~$ cat .access_token | docker login --username devtedhan --password-stdin
+~$ docker info | grep Username
+~$ docker logout
+
+~$ cat .access_token | docker login --username devtedhan --password-stdin
+~$ docker info | grep Username
+~$ docker images
+~$ docker image tag myapp:1.0 devtedhan/myapp:1.0
+~$ docker images | grep myapp
+~$ docker push devtedhan/myapp:1.0
+
+~$ docker image tag myapp:1.1 devtedhan/myapp:1.1
+~$ docker iamges | grep myapp
+~$ docker push devtedhan/myapp:1.1
+
+hostos2로 전환
+
+~$ hostname
+~$ docker pull devtedhan/myapp:1.0
+~$ docker run -d -p 9000:80 devtedhan/myapp:1.0
+~$ curl localhost:9000
+~$ docker ps -a
+~$ docker stop [myapp:1.0이름]
+~$ docker rm [myapp:1.0이름]
+~$ docker rmi devtedhan/myapp:1.0
+~$ docker pull devtedhan/myapp:1.1
+
+hostos1~$ docker image save myapp:1.1 > myapp1.tar
+hostos1~$ ls -lh
+hostos1~$ docker image save myapp:1.1 | gzip > myapp2.tar.gz
+hostos1~$ ls -lh
+hostos1~$ docker image save myapp:1.1 | bzip2 > myapp3.tar.bz2
+hostos1~$ ls -lh | grep myapp
+
+hostos2~$ mkdir /home/tom/backup
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+scp
+
+https://wlsvud84.tistory.com/entry/%EB%A6%AC%EB%88%85%EC%8A%A4-scp-%EB%AA%85%EB%A0%B9%EC%96%B4-%EC%82%AC%EC%9A%A9%EB%B2%95-%ED%8C%8C%EC%9D%BC-%EC%A0%84%EC%86%A1-%ED%94%84%EB%A1%9C%ED%86%A0%EC%BD%9C-%ED%8C%8C%EC%9D%BC-%EB%B3%B4%EB%82%B4%EA%B8%B0-%ED%8C%8C%EC%9D%BC-%EB%B0%9B%EA%B8%B0
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+hostos1~$ scp myapp3.tar.bz2 tom@192.168.56.102:/home/tom/backup/myapp3.tar.bz2
+
+hostos2~$ ls -l /home/tom/backup
+hostos2~$ docker image load < /home/tom/backup/myapp3.tar.bz2
+hostos2~$ docker run -itd -p 9900:80 myapp:1.1
+hostos2~$ curl localhost:9900
+
+hostos2~$ docker images –q
+hostos2~$ docker rmi $(docker images -q)
+hostos2~$ alias cexrm='docker rm $(docker ps --filter 'status=exited' -a -q)'
+hostos2~$ alias
+hostos2~$ cexrm
+hostos2~$ vi .bashrc
+
+# ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+# for examples
+# ▼이곳에 작성▼
+alias cexrm='docker rm $(docker ps --filter 'status=exited' -a -q)'
+
+# If not running interactively, don't do anything
+
+hostos2~$ source .bashrc
+
+hostos1
+~$ docker pull registry
+~$ docker images | grep registry
+~$ docker image inspect registry:latest
+
+	"ExposedPorts": {
+                "5000/tcp": {}
+            },
+
+~$ docker run -d -v /home/tom/registry_data:/var/lib/registry -p 5000:5000 --restart=always --name=local-registry registry
+~$ docker ps
+~$ sudo netstat -nlp | grep 5000
+~$ curl -X GET http://192.168.56.101:5000/v2/_catalog
+~$ docker image tag devtedhan/myapp:1.0 192.168.56.101:5000/myapp:1.0
+~$ docker push 192.168.56.101:5000/myapp:1.0
+	Using default tag: latest
+	The push refers to repository [192.168.56.102:5000/myapp]
+	Get "https://192.168.56.102:5000/v2/": dial tcp 192.168.56.102:5000: connect: connection refused
+~$ sudo vi /etc/init.d/docker
+
+:set nu
+	28 # This is the pid file created/managed by start-stop-daemon
+	29 DOCKER_SSD_PIDFILE=/var/run/$BASE-ssd.pid
+	30 DOCKER_LOGFILE=/var/log/$BASE.log
+	▶ 31 DOCKER_OPTS=--insecure-registry 192.168.56.101:5000
+	32 DOCKER_DESC="Docker"
+
+~$ sudo vi /etc/docker/daemon.json
+	{ "insecure-registries": ["192.168.56.101:5000"] }
+
+~$ sudo systemctl restart docker.service
+~$ docker info
+	Insecure Registries:
+	192.168.56.101:5000
+	127.0.0.0/8
+
+~$ docker push 192.168.56.101:5000/myapp:1.0
+~$ curl -X GET http://192.168.56.101:5000/v2/_catalog
+~$ curl -X GET http://192.168.56.101:5000/v2/myapp/tags/list
+
+hostos2
+~$ docker image tag myapp:1.1 192.168.56.101:5000/myapp:1.1
+~$ sudo vi /etc/init.d/docker
+
+:set nu
+	28 # This is the pid file created/managed by start-stop-daemon
+	29 DOCKER_SSD_PIDFILE=/var/run/$BASE-ssd.pid
+	30 DOCKER_LOGFILE=/var/log/$BASE.log
+	▶ 31 DOCKER_OPTS=--insecure-registry 192.168.56.101:5000
+	32 DOCKER_DESC="Docker"
+
+~$ sudo vi /etc/docker/daemon.json
+	{ "insecure-registries": ["192.168.56.101:5000"] }
+
+~$ sudo systemctl restart docker.service
+~$ docker info
+	Insecure Registries:
+	192.168.56.101:5000
+	127.0.0.0/8
+
+~$ docker push 192.168.56.101:5000/myapp:1.1
+~$ curl -X GET http://192.168.56.101:5000/v2/_catalog
+~$ curl -X GET http://192.168.56.101:5000/v2/myapp/tags/list
+~$ docker pull 192.168.56.101:5000/myapp:1.0
+~$ docker pull 192.168.56.101:5000/myapp:1.1
