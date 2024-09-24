@@ -1,5 +1,244 @@
 ~$ df -h
 ~$ docker start sys-container-2
 ~$ docker exec -it sys-container-2 bash
-~$ hostname
-~$ 
+# hostname
+# ps -ef
+# ifconfig
+Ctrl + p, q
+~$ lsns
+~$ docker images | grep ubuntu
+~$ docker create -it --name=myubuntu22-1 ubuntu:22.04
+~$ docker ps -a | grep my
+~$ docker start myubuntu22-1
+~$ docker ps -a | grep my
+~$ docker stop myubuntu22-1
+~$ docker ps -a | grep my
+~$ docker start myubuntu22-1
+~$ docker ps -a | grep my
+~$ docker stop myubuntu22-1
+~$ docker ps -a | grep my
+~$ docker rm myubuntu22-1
+~$ docker run -it --name=myubuntu22-2 ubuntu:22.04 bash
+# ls
+# df -h
+# hostname
+# ps -ef
+# apt update
+# apt -y install net-tools
+# ifconfig
+Ctrl + p, q
+~$ docker run -it --name=mycontainer ubuntu:18.10 bash
+# hostname
+# echo 'my container for ubuntu' > mycontainer.txt
+# ls
+
+putty
+~$ ps -ef | grep mycontainer
+
+ubuntu
+Ctrl + p, q
+~$ sudo su -
+~$ find /var/lib/docker/ -name mycontainer.txt
+~$ cd /var/.../merged/
+~$ ls
+
+~$ su tom
+~$ cd workspace
+~/workspace$ ls -al
+~/workspace$ sudo mkdir work02
+~/workspace$ sudo chmod 775 work02
+~/workspace$ cd work02
+~/workspace/work02$ cd work02
+~/workspace/work02$ sudo vi runapp.js
+
+const http = require('http');
+const server = http.createServer().listen(9999);
+server.on('request', (req, res) => {
+	console.log('Request done');
+	res.write("Hostname: " + process.env.HOSTNAME + "\n");
+	res.end();
+});
+server.on('connection', (socket) => {
+	console.log("Connected.");
+});
+
+~/workspace/work02$ sudo vi Dockerfile
+
+FROM node:20-alpine3.17
+RUN apk add --no-cache tini curl
+WORKDIR /app
+COPY runapp.js .
+EXPOSE 9999
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["node", "runapp.js"]
+
+~/workspace/work02$ docker build -t noderun:1.0 .
+~/workspace/work02$ docker images | grep noderun
+~/workspace/work02$ docker image history noderun:1.0
+~/workspace/work02$ docker run -itd -p 9999:9999 --name=node-run noderun:1.0
+~/workspace/work02$ docker ps | grep node-run
+~/workspace/work02$ curl localhost:9999
+
+~/workspace/work02$ docker top node-run
+~/workspace/work02$ docker port node-run
+~/workspace/work02$ sudo netstat -nlp | grep 9999
+~/workspace/work02$ ps -ef | grep 9999
+~/workspace/work02$ docker stats node-run
+
+putty
+tom@hostos1:~$ curl localhost:9999
+
+ubuntu
+여러번 요청할 경우, NET I/O 수치가 올라감.
+
+~/workspace/work02$ docker stats node-run --no-stream
+
+~/workspace/work02$ docker run \
+--restart=always \
+--volume=/:/rootfs:ro \
+--volume=/var/run:/var/run:rw \
+--volume=/sys/fs/cgroup:/sys/fs/cgroup:ro \
+--volume=/var/lib/docker/:/var/lib/docker:ro \
+--volume=/dev/disk/:/dev/disk:ro \
+--publish=8888:8080 \
+--detach=true \
+--name=cadvisor \
+--privileged \
+--device=/dev/kmsg \
+gcr.io/cadvisor/cadvisor:latest
+
+~/workspace/work02$ docker ps | grep cadvisor
+Browser url: http://192.168.56.101:8888/containers/
+
+~/workspace/work02$ docker ps -a
+
+putty
+~$ while true; do curl 192.168.56.101:9999; sleep 3; done
+
+ubuntu
+~/workspace/work02$ docker logs -f node-run
+~/workspace/work02$ docker info | grep -i log
+~/workspace/work02$ docker ps
+	55e7ccd92183   noderun:1.0
+
+~/workspace/work02$ sudo ls -l /var/lib/docker/containers
+	...
+	drwx--x--- 4 root root 4096  9월 23 10:00 543f8b1dc1385fa6a20665331e3472ad5e421efeb50bfb970e64dd78a2ddb45c
+	drwx--x--- 4 root root 4096  9월 23 11:26  ▶ 55e7ccd921839fd76e6b346fc713754eb541f847db0f17b31fd831cf80f74f4d
+	drwx--x--- 4 root root 4096  9월 23 10:21 6a1be4c36ea2d49c8d92186edc3385cbf071e7b0366758907007e6dcd1a86c3f
+	...
+
+~/workspace/work02$ sudo ls -l /var/lib/docker/containers/55e7ccd921839fd76e6b346fc713754eb541f847db0f17b31fd831cf80f74f4d
+~/workspace/work02$ sudo ls -lh /var/lib/docker/containers/55e7ccd921839fd76e6b346fc713754eb541f847db0f17b31fd831cf80f74f4d
+~/workspace/work02$ sudo truncate -s 0 /var/lib/docker/containers/55e7ccd921839fd76e6b346fc713754eb541f847db0f17b31fd831cf80f74f4d/55e7ccd921839fd76e6b346fc713754eb541f847db0f17b31fd831cf80f74f4d-json.log
+~/workspace/work02$ sudo ls -lh /var/lib/docker/containers/55e7ccd921839fd76e6b346fc713754eb541f847db0f17b31fd831cf80f74f4d
+~/workspace/work02$ sudo vi /etc/docker/daemon.json
+
+{ "insecure-registries": ["192.168.56.101:5000"],
+        "log-driver": "json-file",
+        "log-opts": {
+                "max-size": "30m",
+                "max-file": "10"
+        }
+}
+
+~/workspace/work02$ sudo systemctl restart docker.service
+~/workspace/work02$ docker start mysql-container
+~/workspace/work02$ docker logs mysql-container
+
+~/workspace/work02$ docker container inspect node-run
+~/workspace/work02$ docker inspect node-run : 컨테이너 생략 가능
+
+~/workspace/work02$ sudo vi runapp.js
+const http = require('http');
+const server = http.createServer().listen(9999);
+server.on('request', (req, res) => {
+        console.log('Node request done');
+        res.write("Hostname: " + process.env.HOSTNAME + "\n");
+        res.end();
+});
+server.on('connection', (socket) => {
+        console.log("Node Connected.");
+});
+
+~/workspace/work02$ docker cp runapp.js node-run:/app/runapp.js
+
+putty
+~$ while true; do curl 192.168.56.101:9999; sleep 3; done
+
+ubuntu
+~/workspace/work02$ docker logs -f node-run
+~/workspace/work02$ docker restart node-run
+~/workspace/work02$ docker logs -f node-run
+
+putty - Duplicate Session(image 95)
+Dup~$ docker events
+	$CADVISOR_HEALTHCHECK_URL
+
+~$ Ctrl + C
+~$ docker stop node-run
+
+Dup
+	container die ... (execDuration=557, exitCode=143, image=noderun:1.0, name=node-run)
+
+~$ docker start node-run
+
+Dup
+	container start ... (image=noderun:1.0, name=node-run)
+
+~$ docker pause node-run
+
+Dup
+	container pause ...  (image=noderun:1.0, name=node-run)
+
+~$ while true; do curl 192.168.56.101:9999; sleep 3; done
+~$ docker unpause node-run
+
+Dup
+	container unpause ... (image=noderun:1.0, name=node-run)
+
+ubuntu
+
+~/workspace/work02$ kill -l
+
+putty
+~$ docker exec -it node-run sh
+/app # cat /etc/os-release
+
+Duplicate Session(image 95)
+Dup2
+~$ docker kill node-run
+
+Dup
+	container die ... (execDuration=557, exitCode=143, image=noderun:1.0, name=node-run)
+
+~$ 엔터
+
+Dup2~$ docker ps -a | grep node-run
+	Exited (137) : 즉시 종료(즉시 종료)
+
+ubuntu
+~/workspace/work02$ docker run -d --name ubuntu-top-container ubuntu:22.04 /usr/bin/top -b
+~/workspace/work02$ docker attach ubuntu-top-container
+~/workspace/work02$ docker start sys-container-2
+~/workspace/work02$ docker exec -d sys-container-2 touch /tmp/exec_test
+~/workspace/work02$ docker docker exec -it sys-container-2 sh
+
+# ls
+# cd /tmp
+# ls
+Ctrl + p, q
+
+~/workspace/work02$ docker exec -it sys-container-2 ls /tmp
+~/workspace/work02$ docker start node-run
+~/workspace/work02$ docker exec -it node-run sh
+
+/app # touch file1
+/app # ls
+/app # rm file1
+/app # ls
+Ctrl + p, q
+
+~/workspace/work02$ docker diff node-run
+~/workspace/work02$ docker logs node-run
+~/workspace/work02$ docker commit node-run noderun:2.0
