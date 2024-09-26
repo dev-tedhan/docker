@@ -241,4 +241,33 @@ Ctrl + p, q
 
 ~/workspace/work02$ docker diff node-run
 ~/workspace/work02$ docker logs node-run
-~/workspace/work02$ docker commit node-run noderun:2.0
+~/workspace/work02$ docker commit noderun noderun:2.0
+~/workspace/work02$ docker run -itd --name=noderun2 -p 6000:9999 noderun:2.0
+~/workspace/work02$ while true; do curl 192.168.56.101:6000; sleep 3; done
+
+~/workspace/work02$ sudo chown tom ~/workspace/work02
+~/workspace/work02$ docker export noderun > noderun.tar
+~/workspace/work02$ tar tvf noderun.tar
+~/workspace/work02$ sudo scp noderun.tar tom@192.168.56.102:/home/tom
+
+
+hostos2
+
+~$ ls /home/tom
+~$ cat noderun.tar | docker import - noderun:2.0
+~$ docker images
+~$ docker run -itd --name=noderun -p 6001:9999 noderun:2.0
+	docker: Error response from daemon: no command specified.
+~$ docker rmi noderun:2.0
+~$ docker import --change 'CMD ["node", "/app/runapp.js"]' noderun.tar noderun:2.0
+~$ docker run -itd --name=noderun -p 6001:9999 noderun:2.0
+~$ curl localhost:6001
+
+~$ cat noderun.tar | docker import - noderun:3.0
+~$ sudo vi Dockerfile_noderun4
+FROM noderun:3.0
+CMD ["node", "/app/runapp.js"]
+~$ docker build -t noderun:4.0 -f Dockerfile_noderun4 .
+~$ docker run -itd --name=noderun2 -p 6002:9999 noderun:4.0
+~$ curl localhost:6002
+
