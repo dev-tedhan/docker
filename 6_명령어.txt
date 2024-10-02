@@ -1,0 +1,278 @@
+~$ ifconfig docker0
+~$ docker network ls
+~$ docker info
+	Plugins:
+	Volume: local
+	Network: bridge host ipvlan macvlan null overlay
+	Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+~$ sudo apt install bridge-utils
+~$ brctl show
+~$ docker start ubuntu-server
+~$ docker exec -it ubuntu-server bash
+
+# apt update
+# apt install iproute2 -y
+# ip addr
+# apt install net-tools
+
+Ctrl + p, q
+
+~$ docker exec -it ubuntu-server ip addr
+~$ docker inspect ubuntu-server | grep -i ipa
+~$ docker inspect ubuntu-server | grep -i mac
+~$ docker network ls
+~$ brctl show
+~$ docker network inspect bridge
+~$ brctl show
+~$ docker exec -it ubuntu-server route
+~$ docker exec -it ubuntu-server ip a
+
+~$ brctl show
+
+bridge name     bridge id               STP enabled     interfaces
+docker0         8000.0242716ae825       no              veth11db3ec
+             		                                             veth2a33c54
+	 	                                      	     veth2fbd917
+             		                           	     veth80a2229
+                           		                   veth8fc359c
+
+~$ cat /sys/class/net/veth11db3ec/ifindex
+8
+~$ cat /sys/class/net/veth2a33c54/ifindex
+14
+~$ cat /sys/class/net/veth2fbd917/ifindex
+12
+~$ cat /sys/class/net/veth80a2229/ifindex
+6
+~$ cat /sys/class/net/veth8fc359c/ifindex
+10
+
+~$ docker exec -it ubuntu-server bash
+# cat /sys/class/net/eth0/iflink
+14
+Ctrl p, q
+
+~$ docker ps
+~$ sudo iptables -t nat -L -n
+~$ sudo vi /etc/hosts
+
+127.0.0.1       localhost
+127.0.1.1       hostos1
+192.168.56.101  hostos1
+192.168.56.102  hostos2
+
+~$ ssh tom@hostos2
+
+hostos2
+~$ w
+
+hostos1
+~$ exit
+
+hostos2
+~$ w
+
+hostos1
+~$ docker images
+~$ docker run -d -P --name=myweb --expose=40000 nginx:1.27.1
+~$ docker ps | grep myweb
+~$ docker image history nginx:1.27.1
+...
+... EXPOSE map[80/tcp:{}] 
+...
+
+~$ docker port myweb
+80/tcp -> 0.0.0.0:32770
+80/tcp -> [::]:32770
+40000/tcp -> 0.0.0.0:32771
+40000/tcp -> [::]:32771
+
+
+~$ sudo netstat -nlp | grep 32770
+tcp        0      0 0.0.0.0:32770           0.0.0.0:*               LISTEN      7953/docker-proxy
+tcp6       0      0 :::32770                :::*                    LISTEN      7960/docker-proxy
+
+~$ ps -ef | grep 7953
+	... -host-ip 0.0.0.0 -host-port 32770 -container-ip 172.17.0.7 -container-port 80
+
+~$ sudo netstat -nlp | grep 32771
+tcp        0      0 0.0.0.0:32771           0.0.0.0:*               LISTEN      7968/docker-proxy
+tcp6       0      0 :::32771                :::*                    LISTEN      7975/docker-proxy
+
+~$ ps -ef | grep 7968
+	... -host-ip 0.0.0.0 -host-port 32771 -container-ip 172.17.0.7 -container-port 40000
+
+~$ sudo iptables -t nat -L -n
+...
+DNAT       tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:32770 to:172.17.0.7:80
+DNAT       tcp  --  0.0.0.0/0            0.0.0.0/0            tcp dpt:32771 to:172.17.0.7:40000
+
+~$ docker run -d --name=nginx_host --net=host nginx:1.27.1
+browser url: http://192.168.56.101/
+
+~$ sudo netstat -nlp | grep 80
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      9100/nginx: master
+
+~$ curl localhost:80
+~$ ps -ef | grep 9100
+~$ docker inspect nginx_host | grep -i ipa
+"SecondaryIPAddresses": null,
+            "IPAddress": "",
+                    "IPAMConfig": null,
+                    "IPAddress": "",
+
+~$ docker network create mynet
+~$ docker network ls
+~$ route
+172.17.0.0      0.0.0.0         255.255.0.0     U     0      0        0 docker0
+▶ 172.18.0.0      0.0.0.0         255.255.0.0     U     0      0        0 br-7f7b33f7690b
+192.168.56.0    0.0.0.0         255.255.255.0   U     101    0        0 enp0s8
+
+~$ ifconfig
+br-7f7b33f7690b: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
+        inet 172.18.0.1  netmask 255.255.0.0  broadcast 172.18.255.255
+        ether 02:42:d0:fc:f0:2d  txqueuelen 0  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+~$ docker network inspect mynet
+"Config": [
+                {
+                    "Subnet": "172.18.0.0/16",
+                    "Gateway": "172.18.0.1"
+                }
+            ]
+
+putty
+S1
+~$ docker run --net=mynet -it --name=net-check1 ubuntu:22.04 bash
+# apt update
+# apt install net-tools
+# ifconfig
+inet 172.18.0.2
+
+S2
+~$ docker run --net=mynet -it --name=net-check2 ubuntu:22.04 bash
+# apt update
+# apt install net-tools
+# ifconfig
+inet 172.18.0.3
+
+S1, S2
+# route
+
+hostos1
+~$ docker network inspect mynet
+"Containers": {
+            "18248d9d4f4c2d8bfa319bf1f099a7a7cc364438dfc30abbfd81d0bd851b6702": {
+                "Name": "net-check2",
+                "EndpointID": "fa682d2d1cd18e9ca95c1d2047df61ebcfb29244c6ed2fa3da8b8a3c4091b0eb",
+                "MacAddress": "02:42:ac:12:00:03",
+                "IPv4Address": "172.18.0.3/16",
+                "IPv6Address": ""
+            },
+            "3d9314fb6d0fd4d7cf0e9e3f3716acafac5bd0c98d3632394b5035469bb1d387": {
+                "Name": "net-check1",
+                "EndpointID": "459f5acc75d289fcb2bf49a89fdad0e7e5ac04af21e2c372d5c5d4ae60cabd04",
+                "MacAddress": "02:42:ac:12:00:02",
+                "IPv4Address": "172.18.0.2/16",
+                "IPv6Address": ""
+            }
+        },
+
+~$ brctl show
+
+S1, S2
+# apt install iputils-ping
+
+S1
+# ping -c 2 net-check2
+PING net-check2 (172.18.0.3) 56(84) bytes of data.
+64 bytes from net-check2.mynet (172.18.0.3)
+
+S2
+# ping -c 2 net-check1
+PING net-check1 (172.18.0.2) 56(84) bytes of data.
+64 bytes from net-check1.mynet (172.18.0.2)
+
+hostos1
+~$ docker network create --driver bridge --subnet 172.30.1.0/24 --ip-range 172.30.1.0/24 --gateway 172.30.1.1 vswitch-net
+~$ docker network ls
+1b229fd61cbb   vswitch-net   bridge    local
+
+~$ route
+172.30.1.0      0.0.0.0         255.255.255.0   U     0      0        0 br-1b229fd61cbb
+
+~$ docker run --net=vswitch-net -itd --name=net1 ubuntu:22.04
+~$ docker inspect net1 | grep -i ipa
+~$ docker run --net=vswitch-net -itd --name=net2 --ip 172.30.1.100 ubuntu:22.04
+~$ docker inspect net2 | grep -i ipa
+~$ docker network inspect vswitch-net
+"Containers": {
+            "954d4c562f6ff7a1700bd5708b7b481662e79ad86a4e2f0f5ad842eb12a2a247": {
+                "Name": "net2",
+                "EndpointID": "1f02d2999dfa4495798422efef84d4abeb06c1f6d77ddea0a244868511276830",
+                "MacAddress": "02:42:ac:1e:01:64",
+                "IPv4Address": "172.30.1.100/24",
+                "IPv6Address": ""
+            },
+            "ebb484d756ed91f6a58e9a9567040202806272982140f8679e5c85bc71341425": {
+                "Name": "net1",
+                "EndpointID": "3268cf5737e39896aa5792327d9bf8327b71ce5208140a9af2f838da9e46f2d7",
+                "MacAddress": "02:42:ac:1e:01:02",
+                "IPv4Address": "172.30.1.2/24",
+                "IPv6Address": ""
+            }
+        },
+
+~$ brctl show
+~$ ip a
+~$ ip route
+~$ docker exec -it net1 bash
+# apt update
+# apt install iproute2 -y
+Ctrl + p, q
+
+~$ docker exec -it net1 ip a
+
+bridge간(서로 다른 네트워크) 통신은 안됨
+~$ docker ps
+~$ docker network create conn-net2
+~$ docker network ls
+~$ route
+
+S2
+~$ ifconfig
+
+hostos1
+~$ docker network connect conn-net2 net-check2
+
+S2
+~$ ifconfig
+eth1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 172.19.0.2  
+
+hostos1
+~$ docker network inspect conn-net2
+"Containers": {
+            "18248d9d4f4c2d8bfa319bf1f099a7a7cc364438dfc30abbfd81d0bd851b6702": {
+                "Name": "net-check2",
+                "EndpointID": "1958af0f6a904ee3720cbad37c608aa12f87af734cb594093bb1356fe3bf91c1",
+                "MacAddress": "02:42:ac:13:00:02",
+                "IPv4Address": "172.19.0.2/16",
+                "IPv6Address": ""
+            }
+        },
+
+~$ docker network rm conn-net2
+Error response from daemon: ... 0991ff58ee17f454 has active endpoints
+
+~$ docker network disconnect conn-net2 net-check2
+
+S2
+~$ ifconfig
+
+hostos1
+~$ docker network rm conn-net2
