@@ -276,3 +276,462 @@ S2
 
 hostos1
 ~$ docker network rm conn-net2
+
+~$ docker network create --driver=bridge back-net
+~$ docker network create --driver=bridge front-net
+~$ docker run --name=my-web -itd --net=front-net ubuntu:22.04
+~$ docker run --name=my-was -itd --net=back-net ubuntu:22.04
+~$ docker run --name=my-db -itd --net=back-net ubuntu:22.04
+~$ docker network connect back-net my-web
+~$ docker exec -it my-web bash
+# apt update
+# apt install net-tools
+# apt install iputils-ping
+Ctrl + p, q
+
+~$ docker exec -it my-was bash
+# apt update
+# apt install net-tools
+# apt install iputils-ping
+Ctrl + p, q
+
+~$ docker exec -it my-db bash
+# apt update
+# apt install net-tools
+# apt install iputils-ping
+Ctrl + p, q
+
+~$ docker exec my-web route
+~$ docker exec my-was route
+~$ docker exec my-db route
+~$ docker network inspect front-net
+~$ docker network inspect back-net
+
+~$ docker exec -it my-web bash
+# ping -c 1 my-was
+Ctrl + p, q
+
+~$ docker exec -it my-was bash
+# ping -c 1 my-web
+# ping -c 1 my-db
+Ctrl + p, q
+
+~$ docker network disconnect front-net my-web
+~$ docker network disconnect back-net my-web
+~$ docker network disconnect back-net my-was
+~$ docker network disconnect back-net my-db
+~$ docker stop my-web my-was my-db
+~$ docker network rm back-net
+~$ docker network rm front-net
+
+~$ docker network ls
+~$ docker network create dns-net
+~$ docker network ls
+~$ route
+~$ docker run -d --name=es1 --net=dns-net --net-alias=esnet-tg -p 9201:9200 -p 9301:9300 -e "discovery.type=single-node" elasticsearch:7.17.10
+~$ docker run -d --name=es2 --net=dns-net --net-alias=esnet-tg -p 9202:9200 -p 9302:9300 -e "discovery.type=single-node" elasticsearch:7.17.10
+~$ docker ps | grep es
+~$ docker inspect es1 | grep -i ipa
+~$ docker inspect es2 | grep -i ipa
+~$ docker run -it --rm --name=request-container --net=dns-net busybox nslookup esnet-tg
+~$ docker run -d --name=es3 --net=dns-net --net-alias=esnet-tg -p 9203:9200 -p 9303:9300 -e "discovery.type=single-node" elasticsearch:7.17.10
+~$ docker run -it --rm --name=request-container --net=dns-net busybox nslookup esnet-tg
+~$ docker run -it --rm --name=request-container --net=dns-net busybox nslookup 172.19.0.2
+~$ docker run -it --rm --name=request-container --net=dns-net busybox nslookup 172.19.0.3
+~$ docker run -it --rm --name=request-container --net=dns-net busybox nslookup 172.19.0.4
+~$ docker run -it --rm --name=request-container --net=dns-net centos:8 bash
+# curl -s esnet-tg:9200
+# curl -s esnet-tg:9200
+# curl -s esnet-tg:9200
+Ctrl + p, q
+
+~$ docker inspect es1
+"DNSNames": [
+                        "es1",
+                        "esnet-tg",
+                        "0873d34fd338"
+                    ]
+~$ docker inspect es2
+"DNSNames": [
+                        "es2",
+                        "esnet-tg",
+                        "b5fdb4fa7562"
+                    ]
+~$ docker inspect es3
+"DNSNames": [
+                        "es3",
+                        "esnet-tg",
+                        "cfa80e181e76"
+                    ]
+
+~$ docker network create --driver bridge --subnet 172.200.1.0/24 --ip-range 172.200.1.0/24 --gateway 172.200.1.1 netlb
+~$ route
+~$ docker network ls
+~$ docker run -itd --name=net-test1 --net=netlb --net-alias tg-net ubuntu:22.04
+~$ docker run -itd --name=net-test2 --net=netlb --net-alias tg-net ubuntu:22.04
+~$ docker run -itd --name=net-test3 --net=netlb --net-alias tg-net ubuntu:22.04
+~$ docker inspect net-test1 | grep IPAddress
+~$ docker inspect net-test2 | grep IPAddress
+~$ docker inspect net-test3 | grep IPAddress
+~$ docker run -it --name=frontend --net=netlb ubuntu:22.04 bash
+# apt update
+# apt install iputils-ping
+# ping -c 1 tg-net
+# ping -c 1 tg-net
+# ping -c 1 tg-net
+# apt -y install dnsutils
+# dig tg-net
+;; QUESTION SECTION:
+;tg-net.                                IN      A
+
+;; ANSWER SECTION:
+tg-net.                 600     IN      A       172.200.1.2
+tg-net.                 600     IN      A       172.200.1.3
+tg-net.                 600     IN      A       172.200.1.4
+
+
+putty- hostos1
+
+~$ docker run -itd --name=net-test4 --net=netlb --net-alias tg-net ubuntu:22.04
+~$ docker ps
+
+hostos1
+~$ dig tg-net
+;; QUESTION SECTION:
+;tg-net.                                IN      A
+
+;; ANSWER SECTION:
+tg-net.                 600     IN      A       172.200.1.2
+tg-net.                 600     IN      A       172.200.1.3
+tg-net.                 600     IN      A       172.200.1.6
+tg-net.                 600     IN      A       172.200.1.4
+
+~$ sudo apt update
+~$ sudo apt -y install nginx
+~$ sudo nginx -v
+~$ sudo systemctl status nginx.service
+~$ sudo netstat -nlp | grep 80
+~$ docker run -it -d -e SERVER_PORT=5001 -p 5001:5001 -h alb-node01 -u root --name=alb-node01 dbgurum/nginxlb:1.0
+~$ docker ps -a | grep node
+~$ docker logs alb-node01
+cat: /sys/fs/cgroup/memory/memory.limit_in_bytes: No such file or directory
+~$ docker rm alb-node01
+~$ docker info
+ Cgroup Driver: systemd
+ Cgroup Version: 2
+~$ sudo sed -i '/^GRUB_CMDLINE_LINUX/ s/"$/ systemd.unified_cgroup_hierarchy=0"/' /etc/default/grub
+~$ sudo update-grub
+~$ sudo reboot
+~$ docker info
+ Cgroup Driver: cgroupfs
+ Cgroup Version: 1
+~$ docker run -it -d -e SERVER_PORT=5001 -p 5001:5001 -h alb-node01 -u root --name=alb-node01 dbgurum/nginxlb:1.0
+~$ docker ps -a | grep node
+~$ docker run -it -d -e SERVER_PORT=5002 -p 5002:5002 -h alb-node02 -u root --name=alb-node02 dbgurum/nginxlb:1.0
+~$ docker run -it -d -e SERVER_PORT=5003 -p 5003:5003 -h alb-node03 -u root --name=alb-node03 dbgurum/nginxlb:1.0
+~$ docker ps -a | grep alb
+~$ sudo netstat -nlp | grep 5001
+~$ sudo netstat -nlp | grep 5002
+~$ sudo netstat -nlp | grep 5003
+
+browser url 
+http://192.168.56.101/
+http://192.168.56.101:5001/
+http://192.168.56.101:5002/
+http://192.168.56.101:5003/
+
+~$ sudo mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.org
+~$ sudo vi /etc/nginx/nginx.conf
+events { worker_connections 1024; }
+http {
+        # List of application servers
+        upstream backend-alb {
+                server 127.0.0.1:5001;
+                server 127.0.0.1:5002;
+                server 127.0.0.1:5003;
+        }
+
+        # Configuration for the server
+        server {
+                # Running port
+                listen 80 default_server;
+                #Proxying the connections
+                location / {
+                        proxy_pass      http://backend-alb;
+                }
+        }
+}
+~$ sudo systemctl restart nginx.service
+~$ sudo systemctl status nginx.service
+browser url 
+http://192.168.56.101/
+http://192.168.56.101/
+http://192.168.56.101/
+~$ sudo systemctl stop nginx.service
+~$ sudo cp /etc/nginx/nginx.conf ./
+~$ sudo apt autoremove nginx -y
+~$ sudo netstat -nlp | grep 80
+~$ docker ps | grep alb
+~$ docker run -d -p 8001:80 --name=proxy-container nginx:1.27.1-alpine
+~$ docker ps | grep proxy
+browser url 
+http://192.168.56.101:8001
+~$ sudo vi nginx.conf
+events { worker_connections 1024; }
+http {
+        # List of application servers
+        upstream backend-alb {
+                server 192.168.56.101:5001;
+                server 192.168.56.101:5002;
+                server 192.168.56.101:5003;
+        }
+
+        # Configuration for the server
+        server {
+                # Running port
+                listen 80 default_server;
+                #Proxying the connections
+                location / {
+                        proxy_pass      http://backend-alb;
+                }
+        }
+}
+~$ docker cp nginx.conf proxy-container:/etc/nginx/nginx.conf
+~$ docker restart proxy-container
+~$ curl localhost:8001
+~$ sudo vi nginx.conf
+events { worker_connections 1024; }
+http {
+        # List of application servers
+        upstream backend-alb {
+                server 192.168.56.101:5001 weight=60;
+                server 192.168.56.101:5002 weight=20;
+                server 192.168.56.101:5003 weight=20;
+        }
+
+        # Configuration for the server
+        server {
+                # Running port
+                listen 80 default_server;
+                #Proxying the connections
+                location / {
+                        proxy_pass      http://backend-alb;
+                }
+        }
+}
+~$ docker cp nginx.conf proxy-container:/etc/nginx/nginx.conf
+~$ docker restart proxy-container
+browser url 
+http://192.168.56.101:8001
+
+~$ docker network create proxy-net
+~$ docker network ls
+~$ route
+~$ docker run -d --name=echo-web1 --net=proxy-net -h echo-web1 dbgurum/haproxy:echo
+~$ docker run -d --name=echo-web2 --net=proxy-net -h echo-web2 dbgurum/haproxy:echo
+~$ docker run -d --name=echo-web3 --net=proxy-net -h echo-web3 dbgurum/haproxy:echo
+~$ docker ps -a | grep echo
+~$ cd workspace
+~/workspace$ mkdir work03
+~/workspace$ chmod 777 work03
+~/workspace$ cd work03
+~/workspace/work03$ mkdir conf
+~/workspace/work03$ chmod 777 conf
+~/workspace/work03$ cd conf
+##########################################################################
+참고
+https://docs.haproxy.org/3.0/configuration.html#5.2
+
+2.8. Examples
+    # Simple configuration for an HTTP proxy listening on port 80 on all
+    # interfaces and forwarding requests to a single backend "servers" with a
+    # single server "server1" listening on 127.0.0.1:8000
+    global
+        daemon
+        maxconn 256
+
+    defaults
+        mode http
+        timeout connect 5000ms
+        timeout client 50000ms
+        timeout server 50000ms
+
+    frontend http-in
+        bind *:80
+        default_backend servers
+
+    backend servers
+        server server1 127.0.0.1:8000 maxconn 32
+
+
+    # The same configuration defined with a single listen block. Shorter but
+    # less expressive, especially in HTTP mode.
+    global
+        daemon
+        maxconn 256
+
+    defaults
+        mode http
+        timeout connect 5000ms
+        timeout client 50000ms
+        timeout server 50000ms
+
+    listen http-in
+        bind *:80
+        server server1 127.0.0.1:8000 maxconn 32
+##########################################################################
+
+~/workspace/work03/conf$ sudo vi haproxy.cfg
+global
+	stats socket /var/run/api.sock user haproxy group haproxy mode 660 level admin expose-fd listeners
+	log stdout format raw local0 info
+
+defaults
+	mode http
+	timeout client 10s
+	timeout connect 5s
+	timeout server 10s
+	timeout http-request 10s
+	log global
+
+frontend stats
+	bind *:8404
+	stats enable
+	stats uri /
+	stats refresh 10s
+
+frontend myfrontend
+	bind :80
+	default_backend webservers
+
+backend webservers
+	server s1 echo-web1:8080 check
+	server s2 echo-web2:8080 check
+	server s3 echo-web3:8080 check
+
+~/workspace/work03/conf$ ps -a | grep echo
+~/workspace/work03/conf$ docker run -d --name=haproxy-container --net=proxy-net -p 80:80 -p 8404:8404 -v $(pwd):/usr/local/etc/haproxy:ro haproxytech/haproxy-alpine:2.5
+~/workspace/work03/conf$ docker ps | grep proxy
+~/workspace/work03/conf$ docker port haproxy-container
+~/workspace/work03/conf$ curl localhost:80
+browser url: http://192.168.56.101/
+
+10초 간격으로 수집
+browser url: http://192.168.56.101:8404/
+
+~/workspace/work03/conf$ sudo vi haproxy.cfg
+global
+        stats socket /var/run/api.sock user haproxy group haproxy mode 660 level admin expose-fd listeners
+        log stdout format raw local0 info
+
+defaults
+        mode http
+        timeout client 10s
+        timeout connect 5s
+        timeout server 10s
+        timeout http-request 10s
+        log global
+
+frontend stats
+        bind *:8404
+        stats enable
+        stats uri /
+        stats refresh 10s
+
+frontend myfrontend
+        bind :80
+        default_backend webservers
+
+        acl echo-web1 path_beg /echo-web1
+        acl echo-web2 path_beg /echo-web2
+        acl echo-web3 path_beg /echo-web3
+
+        use_backend echo-web1_backend if echo-web1
+        use_backend echo-web2_backend if echo-web2
+        use_backend echo-web3_backend if echo-web3
+
+backend webservers
+        balance roundrobin
+        server s1 echo-web1:8080 check
+        server s2 echo-web2:8080 check
+        server s3 echo-web3:8080 check
+
+backend echo-web1_backend
+        server s1 echo-web1:8080 check
+
+backend echo-web2_backend
+        server s2 echo-web2:8080 check
+
+backend echo-web3_backend
+        server s3 echo-web3:8080 check
+
+~/workspace/work03/conf$ docker stop haproxy-container
+~/workspace/work03/conf$ docker run -d --name=haproxy-container --net=proxy-net -p 80:80 -p 8404:8404 -v $(pwd):/usr/local/etc/haproxy:ro haproxytech/haproxy-alpine:2.5
+~/workspace/work03/conf$ docker rm haproxy-container
+~/workspace/work03/conf$ docker ps
+~/workspace/work03/conf$ docker port haproxy-container
+~/workspace/work03/conf$ curl localhost:80
+~/workspace/work03/conf$ curl localhost:80
+~/workspace/work03/conf$ curl localhost:80
+~/workspace/work03/conf$ curl localhost:80/echo-web1
+~/workspace/work03/conf$ curl localhost:80/echo-web2
+~/workspace/work03/conf$ curl localhost:80/echo-web3
+~/workspace/work03/conf$ docker run -d --name=echo-web1-item --net=proxy-net -h echo-web1-item dbgurum/haproxy:echo
+~/workspace/work03/conf$ docker run -d --name=echo-web2-item --net=proxy-net -h echo-web2-item dbgurum/haproxy:echo
+~/workspace/work03/conf$ docker run -d --name=echo-web3-basket --net=proxy-net -h echo-web3-basket dbgurum/haproxy:echo
+~/workspace/work03/conf$ docker run -d --name=echo-web4-basket --net=proxy-net -h echo-web4-basket dbgurum/haproxy:echo
+
+~/workspace/work03/conf$ sudo vi haproxy.cfg
+global
+        stats socket /var/run/api.sock user haproxy group haproxy mode 660 level admin expose-fd listeners
+        log stdout format raw local0 info
+
+defaults
+        mode http
+        timeout client 10s
+        timeout connect 5s
+        timeout server 10s
+        timeout http-request 10s
+        log global
+
+frontend stats
+        bind *:8404
+        stats enable
+        stats uri /
+        stats refresh 10s
+
+frontend myfrontend
+        bind :80
+        default_backend webservers
+
+        acl echo-web1-item path_beg /item
+        acl echo-web2-item path_beg /item
+        acl echo-web3-basket path_beg /basket
+        acl echo-web4-basket path_beg /basket
+
+        use_backend echo-web1_backend if echo-web1-item
+        use_backend echo-web1_backend if echo-web2-item
+        use_backend echo-web2_backend if echo-web3-basket
+        use_backend echo-web2_backend if echo-web4-basket
+
+backend webservers
+        balance roundrobin
+        server s1 echo-web1-item:8080 check
+        server s2 echo-web2-item:8080 check
+        server s3 echo-web3-basket:8080 check
+        server s4 echo-web4-basket:8080 check
+
+backend echo-web1_backend
+        server s1 echo-web1-item:8080 check
+        server s2 echo-web2-item:8080 check
+
+backend echo-web2_backend
+        server s3 echo-web3-basket:8080 check
+        server s4 echo-web4-basket:8080 check
+
+~/workspace/work03/conf$ docker stop haproxy-container
+~/workspace/work03/conf$ docker rm haproxy-container
+~/workspace/work03/conf$ docker run -d --name=haproxy-container --net=proxy-net -p 80:80 -p 8404:8404 -v $(pwd):/usr/local/etc/haproxy:ro haproxytech/haproxy-alpine:2.5
+~/workspace/work03/conf$ curl localhost:80
+~/workspace/work03/conf$ curl localhost:80/item
+~/workspace/work03/conf$ curl localhost:80/basket
