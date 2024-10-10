@@ -1,0 +1,107 @@
+~$ cd workspace
+~/workspace$ mkdir work04
+~/workspace$ chmod 777 work04
+~/workspace$ cd work04
+
+docker-prometheus 폴더 붙여넣기
+~/workspace/work04$ cd docker-prometheus
+~/workspace/work04/docker-prometheus$ sudo apt install tree
+~/workspace/work04/docker-prometheus$ tree
+~/workspace/work04/docker-prometheus$ vi docker-compose.yaml
+...
+image: prom/prometheus:latest
+...
+ports:
+      - 9090:9090
+...
+node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter
+    ports:
+      - "9100:9100"
+~/workspace/work04/docker-prometheus$ docker stop cadvisor
+~/workspace/work04/docker-prometheus$ docker rm cadvisor
+~/workspace/work04/docker-prometheus$ docker compose up -d
+
+~$ sudo apt -y install htop
+
+putty: hostos1
+~$ htop
+
+hostos1
+~$ docker run -d --name cpu_1024 --cpu-shares 1024 leecloudo/stress:1.0 stress --cpu 4
+~$ docker run -d --name cpu_512 --cpu-shares 512 leecloudo/stress:1.0 stress --cpu 4
+~$ ps -auxf | grep stress
+~$ docker stop cpu_512
+~$ docker stop cpu_1024
+~$ docker ps -a
+~$ docker rm cpu_512 cpu_1024
+~$ docker run -d --name cpuset_1 --cpuset-cpus=2 leecloudo/stress:1.0 stress --cpu 1
+~$ docker stop cpuset_1
+~$ docker rm cpuset_1
+~$ docker run -d --name cpuset_2 --cpuset-cpus=0,3 leecloudo/stress:1.0 stress --cpu 2
+~$ docker stop cpuset_2
+~$ docker rm cpuset_2
+~$ docker run -d --name cpuset_1 --cpuset-cpus=2 leecloudo/stress:1.0 stress --cpu 1
+~$ docker update --cpus=0.2 cpuset_1
+~$ docker stop cpuset_1
+~$ docker rm cpuset_1
+~$ docker run -d --name cpuset_2 --cpuset-cpus=0,3 leecloudo/stress:1.0 stress --cpu 2
+~$ docker update --cpus=0.2 cpuset_2
+~$ docker stop cpuset_2
+~$ docker rm cpuset_2
+
+~$ vmstat 2 5
+si	so
+0	0
+~$ docker run -d --memory=1g --name=nginx_mem_1g nginx
+~$ docker inspect nginx_mem_1g | grep -i memory
+"Memory": 1073741824,
+"MemoryReservation": 0,
+"MemorySwap": 2147483648, Memory의 2배
+"MemorySwappiness": null,
+
+~$ bc
+1073741824/1024/1024/1024
+1
+quit
+
+~$ docker run -m=200m --memory-swap=300m -itd --name=mem-test ubuntu:22.04
+~$ docker inspect mem-test | grep -i memory
+"Memory": 209715200,
+"MemoryReservation": 0,
+"MemorySwap": 314572800,
+"MemorySwappiness": null,
+~$ docker run -itd --memory=6m --name=mydb -e MYSQL_ROOT_PASSWORD=1234 mysql:8.0.30
+▼ 조금 기다렸다가 실행해야 메모리 부족으로 종료됨(최소 200M는 있어야 mysqld가 실행가능함)
+~$ docker ps -a | grep mydb
+... About a minute ago   Exited (137) 20 seconds ago 
+~$ docker update --memory=300m --memory-swap=600m mydb
+~$ docker ps -a | grep mydb
+~$ docker start mydb
+~$ docker ps -a | grep mydb
+~$ docker inspect mydb | grep -i memory
+"Memory": 314572800,
+"MemoryReservation": 0,
+"MemorySwap": 629145600,
+"MemorySwappiness": null,
+
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
+~$ 
