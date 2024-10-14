@@ -86,22 +86,61 @@ quit
 "MemorySwap": 629145600,
 "MemorySwappiness": null,
 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
-~$ 
+~$ docker run -it --rm --memory=200m --memory-swap=200m leecloudo/stress:1.0 stress --vm 1 --vm-bytes 250m -t 10s
+메모리 부족
+~$ docker run -it --rm --memory=200m --memory-swap=200m leecloudo/stress:1.0 stress --vm 1 --vm-bytes 150m -t 10s
+~$ docker run -it --rm --memory=200m --memory-swap=200m leecloudo/stress:1.0 stress --vm 1 --vm-bytes 200m -t 10s
+메모리 부족
+~$ docker run -it --rm --memory=200m leecloudo/stress:1.0 stress --vm 1 --vm-bytes 150m -t 10s
+~$ docker run -it --rm --memory=200m leecloudo/stress:1.0 stress --vm 1 --vm-bytes 250m -t 10s
+~$ docker run -it --rm --memory=200m leecloudo/stress:1.0 stress --vm 1 --vm-bytes 300m -t 10s
+~$ docker run -it --rm --memory=200m leecloudo/stress:1.0 stress --vm 1 --vm-bytes 400m -t 10s
+메모리 부족
+
+putty: hostos1
+~$ sudo apt install sysstat
+~$ iostat 2 1000
+2초 간격으로 1000번
+
+hostos1
+~$ docker run -it --rm ubuntu:22.04 bash
+# dd if=/dev/zero of=blkmb.out bs=1M count=10 oflag=direct
+10+0 records in
+10+0 records out
+10485760 bytes (10 MB, 10 MiB) copied, 0.0153256 s, 684 MB/s
+# exit
+
+~$ docker run -it --rm --device-write-bps /dev/sdb:1mb ubuntu:22.04 bash
+# dd if=/dev/zero of=blkmb.out bs=1M count=10 oflag=direct
+10+0 records in
+10+0 records out
+10485760 bytes (10 MB, 10 MiB) copied, 10.0065 s, 1.0 MB/s
+# exit
+
+~$ docker run -it --rm --device-write-bps /dev/sdb:10mb ubuntu:22.04 bash
+# dd if=/dev/zero of=blkmb.out bs=1M count=10 oflag=direct
+10+0 records in
+10+0 records out
+10485760 bytes (10 MB, 10 MiB) copied, 1.00676 s, 10.4 MB/s
+# exit
+
+~$ docker run -it --rm ubuntu:22.04 bash
+# dd if=/dev/zero of=blkmb.out bs=1M count=10 oflag=direct
+10+0 records in
+10+0 records out
+10485760 bytes (10 MB, 10 MiB) copied, 0.0340969 s, 308 MB/s
+# exit
+
+~$ docker run -it --rm --device-write-iops /dev/sdb:10 ubuntu:22.04 bash
+# dd if=/dev/zero of=blkmb.out bs=1M count=10 oflag=direct
+10+0 records in
+10+0 records out
+10485760 bytes (10 MB, 10 MiB) copied, 1.90294 s, 5.5 MB/s
+# exit
+
+~$ docker run -it --rm --device-write-iops /dev/sdb:1 ubuntu:22.04 bash
+# dd if=/dev/zero of=blkmb.out bs=1M count=10 oflag=direct
+10+0 records in
+10+0 records out
+10485760 bytes (10 MB, 10 MiB) copied, 36.1051 s, 290 kB/s
+# exit

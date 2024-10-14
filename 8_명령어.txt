@@ -1,0 +1,96 @@
+~$ sudo su -
+~# cd /var/lib/docker/
+/var/lib/docker/# ll
+~$ su tom
+~$ cd workspace
+~/workspace$ mkdir work05
+~/workspace$ chmod 777 work05
+~/workspace$ cd work05
+~/workspace/work05$ mkdir bind01 bind02
+~/workspace/work05$ chmod 777 bind01 bind02
+~/workspace/work05$ echo 'my docker-1' > bind01/docker-1.txt
+~/workspace/work05$ echo 'my docker-2' > bind02/docker-2.txt
+~/workspace/work05$ docker run -it --name=bind-mount -v /home/tom/workspace/work05/bind01:/bind01 -v ${PWD}/bind02:/bind02 ubuntu:22.04 bash
+# df -ha
+...
+/dev/sda1        66G   11G   55G  17% /bind01
+/dev/sda1        66G   11G   55G  17% /bind02
+...
+# mount | grep bind
+# pwd
+# ls bind01
+# cat bind01/docker-1.txt
+# ls bind02
+# cat bind02/docker-2.txt
+Ctrl + p, q
+
+~/workspace/work05$ docker inspect --format="{{ .HostConfig.Binds }}" bind-mount
+~/workspace/work05$ docker stop bind-mount
+~/workspace/work05$ docker rm bind-mount
+~/workspace/work05$ cat bind01/docker-1.txt
+~/workspace/work05$ docker run -it --name=bind-mount -v /home/tom/workspace/work05/bind01:/bind01:ro -v ${PWD}/bind02:/bind02:rw ubuntu:22.04 bash
+# echo 'welcome to container' >> bind01/docker-1.txt
+bash: bind01/docker-1.txt: Read-only file system
+~/workspace/work05$ mkdir redis-conf && cd $_
+~/workspace/work05/redis-conf$ curl -O https://raw.githubusercontent.com/redis/redis/7.0/redis.conf
+~/workspace/work05/redis-conf$ sudo vi redis.conf
+: set nu
+...
+1036 # requirepass foobared
+1037 requirepass 1234
+1038 # New users are initialized with restrictive permissions by default, via the
+...
+:wq
+~/workspace/work05/redis-conf$ docker run -itd --name=redis-container -p 6379:6379 -h=redis-db -v ./data:/data -v ./redis.conf:/usr/local/conf/redis.conf redis:7 redis-server /usr/local/conf/redis.conf
+~/workspace/work05/redis-conf$ docker exec -it redis-container bash
+data# redis-cli
+127.0.0.1:6379> set item1 docker1
+(error) NOAUTH Authentication required.
+127.0.0.1:6379> exit
+data# redis-cli -a 1234
+127.0.0.1:6379> set item1 docker1
+OK
+127.0.0.1:6379> set item2 docker2
+OK
+127.0.0.1:6379> get item1
+"docker1"
+127.0.0.1:6379> get item2
+"docker2"
+127.0.0.1:6379> exit
+data# exit
+
+~/workspace/work05/redis-conf$ cd ..
+~/workspace/work05$ docker run -it -v ~/.bash_history:/root/.bash_history --rm centos:7 /bin/bash
+# echo 'docker volume test' > volume.txt
+# cat volume.txt
+# ls
+# rm volume.txt
+rm: remove regular file 'volume.txt'? y
+# df -h
+# tail ~/.bash_history
+# exit
+~/workspace/work05$ tail ~/.bash_history
+echo 'docker volume test' > volume.txt
+cat volume.txt
+ls
+rm volume.txt
+df -h
+tail ~/.bash_history
+exit
+
+~/workspace/work05$ date
+~/workspace/work05$ docker run --rm ubuntu:22.04 date
+~/workspace/work05$ docker run --rm -v /etc/localtime:/etc/localtime ubuntu:22.04 date
+~/workspace/work05$ 
+~/workspace/work05$ 
+~/workspace/work05$ 
+~/workspace/work05$ 
+~/workspace/work05$ 
+~/workspace/work05$ 
+~/workspace/work05$ 
+~/workspace/work05$ 
+~/workspace/work05$ 
+~/workspace/work05$ 
+~/workspace/work05$ 
+~/workspace/work05$ 
+~/workspace/work05$ 
