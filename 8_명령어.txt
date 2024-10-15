@@ -81,16 +81,247 @@ exit
 ~/workspace/work05$ date
 ~/workspace/work05$ docker run --rm ubuntu:22.04 date
 ~/workspace/work05$ docker run --rm -v /etc/localtime:/etc/localtime ubuntu:22.04 date
-~/workspace/work05$ 
-~/workspace/work05$ 
-~/workspace/work05$ 
-~/workspace/work05$ 
-~/workspace/work05$ 
-~/workspace/work05$ 
-~/workspace/work05$ 
-~/workspace/work05$ 
-~/workspace/work05$ 
-~/workspace/work05$ 
-~/workspace/work05$ 
-~/workspace/work05$ 
-~/workspace/work05$ 
+~/workspace/work05$ cd ~
+~$ docker volume create mydb-data
+~$ docker volume ls
+~$ docker volume inspect mydb-data
+...
+"Mountpoint": "/var/lib/docker/volumes/mydb-data/_data",
+...
+~$ docker rm mydb
+~$ docker run -d --name mydb -e MYSQL_ROOT_PASSWORD=1234 -e MYSQL_DATABASE=mydb -v mydb-data:/var/lib/mysql mysql:8.0.30
+~$ docker ps
+~$ sudo ls /var/lib/docker/volumes/mydb-data/_data
+mydb 생성 확인
+~$ docker exec -it mydb bash
+bash-4.4# df -h
+bash-4.4# df -ha
+...
+/dev/sdb1       100G  6.0G   94G   6% /var/lib/mysql
+...
+bash-4.4# exit
+~$ docker stop mydb
+~$ docker rm mydb
+~$ sudo ls /var/lib/docker/volumes/mydb-data/_data
+mydb 삭제 안된 것 확인
+~$ docker run -d --name mydb -e MYSQL_ROOT_PASSWORD=1234 -e MYSQL_DATABASE=mydb -v /var/lib/mysql mysql:8.0.30
+~$ docker inspect mydb
+...
+"Mounts": [
+            {
+               ...
+                "Name": "6db697b5826f9469e531541bfa3d346dba4560f6a4c001eb49fb91e28d408e94",
+               ...
+            }
+        ],
+...
+~$ docker volume ls
+...
+local     6db697b5826f9469e531541bfa3d346dba4560f6a4c001eb49fb91e28d408e94
+...
+
+~$ docker create -v /share-data --name=share-container ubuntu:22.04
+~$ docker ps -a | grep share
+... 11 seconds ago   Created
+~$ docker inspect share-container
+~$ docker inspect share-container
+...
+"Mounts": [
+            {
+                "Type": "volume",
+                "Name": "0a9c7667c00ae2443d7a8a391477c7c18ab3ca42faead9d937342d56cd2bb2bf",
+                "Source": "/var/lib/docker/volumes/0a9c7667c00ae2443d7a8a391477c7c18ab3ca42faead9d937342d56cd2bb2bf/_data",
+                "Destination": "/share-data",
+                "Driver": "local",
+                "Mode": "",
+                "RW": true,
+                "Propagation": ""
+            }
+        ],
+...
+~$ docker run -it --volumes-from share-container --name=data-1 ubuntu:22.04 bash
+# df -h
+# echo 'testing data container' > /share-data/data-1.txt
+# cat /share-data/data-1.txt
+# exit
+~$ docker rm data-1
+~$ docker run -it --volumes-from share-container --name=data-2 ubuntu:22.04 bash
+# cat /share-data/data-1.txt
+# exit
+~$ docker rm data-2
+~$ docker rm share-container
+~$ docker create -v ${PWD}/share-volume:/share-data --name=share-container ubuntu:22.04 bash
+~$ docker run -it --volumes-from share-container --name=data-2 ubuntu:22.04 bash
+# echo 'testing data container' > /share-data/data-2.txt
+# cat /share-data/data-2.txt
+# exit
+~$ cat share-volume/data-2.txt
+~$ docker run -it --volumes-from share-container:ro --name=data-3 ubuntu:22.04 bash
+# echo 'testing data container' > /share-data/data-3.txt
+bash: /share-data/data-3.txt: Read-only file system
+# exit
+~$ docker rm data-3
+
+~$ docker ps -a | grep mydb
+~$ docker stop mydb
+~$ docker rm mydb
+~$ docker run -itd --name=mydb -e MYSQL_ROOT_PASSWORD=1234 -e MYSQL_DATABASE=mydb -v ${PWD}/mydb-data:/var/lib/mysql -d mysql:8.0.30
+~$ docker exec -it mydb bash
+bash-4.4# cat /etc/os-release
+bash-4.4# df -h
+...
+/dev/sda1        66G   11G   55G  17% /var/lib/mysql
+...
+bash-4.4# mysql -uroot -p
+mysql> show databases;
+mysql> use mydb
+mysql> create table tbl_class (id int auto_increment primary key, class_name varchar(255));
+mysql> insert into tbl_class (class_name) values ('docker container CI/CD');
+mysql> select * from tbl_class;
+mysql> exit
+bash-4.4# ls -l /var/lib/mysql/mydb/
+-rw-r----- 1 mysql mysql 114688 Oct 15 02:38 tbl_class.ibd
+bash-4.4# exit
+~$ docker stop mydb
+~$ docker rm mydb
+~$ ls mydb-data/mydb
+tbl_class.ibd
+~$ docker run -itd --name=mydb -e MYSQL_ROOT_PASSWORD=1234 -e MYSQL_DATABASE=mydb -v ${PWD}/mydb-data:/var/lib/mysql -d mysql:8.0.30
+~$ docker exec -it mydb bash
+bash-4.4# mysql -uroot -p
+mysql> show databases;
+mysql> use mydb
+mysql> show tables;
+mysql> select * from tbl_class;
+mysql> exit
+bash-4.4# exit
+~$ docker stop mydb
+~$ docker rm mydb
+~$ docker run -itd --name=mydb -e MYSQL_ROOT_PASSWORD=1234 -e MYSQL_DATABASE=mydb -v ${PWD}/mydb-data:/var/lib/mysql -d mysql:8.4.2
+~$ docker exec -it mydb bash
+bash-5.1# cat /etc/os-release
+bash-5.1# mysql -uroot -p
+mysql> show databases;
+mysql> use mydb
+mysql> show tables;
+mysql> select * from tbl_class;
+버전이 달라도 연결 가능
+mysql> exit
+bash-4.4# exit
+
+~$ mkdir -p workspace/work05/nginx-log
+~$ docker stop myweb
+~$ docker rm myweb
+~$ docker run -d --name=myweb -v ${PWD}/workspace/work05/nginx-log:/var/log/nginx -p 8011:80 nginx:1.27.1-alpine
+~$ ls workspace/work05/nginx-log/
+~$ tail -f workspace//work05/nginx-log/access.log
+
+hostos2
+~$ curl 192.168.56.101:8011
+~$ curl 192.168.56.101:8011
+~$ curl 192.168.56.101:8011
+
+hostos1
+192.168.56.102 - - [15/Oct/2024:03:10:19 +0000] "GET / HTTP/1.1" 200 615 "-" "curl/7.81.0" "-"
+192.168.56.102 - - [15/Oct/2024:03:10:25 +0000] "GET / HTTP/1.1" 200 615 "-" "curl/7.81.0" "-"
+192.168.56.102 - - [15/Oct/2024:03:10:26 +0000] "GET / HTTP/1.1" 200 615 "-" "curl/7.81.0" "-"
+
+browser url: http://192.168.56.101:8011/
+hostos1
+...
+192.168.56.1 - - [15/Oct/2024:03:10:59 +0000] "GET / HTTP/1.1" 200 615 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" "-"
+192.168.56.1 - - [15/Oct/2024:03:10:59 +0000] "GET /favicon.ico HTTP/1.1" 404 555 "http://192.168.56.101:8011/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" "-"
+192.168.56.1 - - [15/Oct/2024:03:11:19 +0000] "GET / HTTP/1.1" 304 0 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" "-"
+
+~$ docker stop myweb
+~$ docker rm myweb
+~$ ls workspace/work05/nginx-log/
+~$ cat workspace/work05/nginx-log/access.log
+~$ cd workspace/work05/nginx-log/
+~/workspace/work05/nginx-log$ awk '$4>"[15/Oct/2024:03:10:19]" && $4<"[15/Oct/2024:03:11:19]"' access.log | awk '{ print $1 }' | sort | uniq -c | sort -r | more
+      3 192.168.56.1
+      2 192.168.56.102
+
+~/workspace/work05/nginx-log$ cd ~
+~$ mount | grep xfs
+/dev/sda1 on / type xfs (..., noquota)
+~$ docker run -it -v /home/kevin/myvolume:/webapp --name=mycontainer --storage-opt size=1G ubuntu:22.04 bash
+docker: Error response from daemon: --storage-opt is supported only for overlay over xfs with 'pquota' mount option.
+~$ sudo vi /etc/default/grub
+:set nu
+...
+10	GRUB_CMDLINE_LINUX_DEFAULT="quiet splash systemd.unified_cgroup_hierachy=0 systemd.unified_cgroup_hierarchy=0"
+...
+
+->
+...
+10	GRUB_CMDLINE_LINUX_DEFAULT="quiet splash rootflags=uquota,pquota"
+...
+
+~$ sudo vi /etc/fstab
+...
+UUID=31201adb-11f4-453f-8d17-ecc02edb83e0 /var/lib/docker xfs     defaults        0       0
+...
+
+->
+...
+UUID=31201adb-11f4-453f-8d17-ecc02edb83e0 /var/lib/docker xfs     defaults,pquota        0       0
+...
+
+~$ sudo reboot
+~$ mount | grep xfs
+...
+/dev/sdb1 on /var/lib/docker type xfs (rw,relatime,attr2,inode64,logbufs=8,logbsize=32k,prjquota)
+~$ docker rm mycontainer
+~$ docker run -it -v /home/kevin/myvolume:/webapp --name=mycontainer --storage-opt size=1G ubuntu:22.04 bash
+# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+overlay         1.0G  8.0K  1.0G   1% /
+...
+# exit
+~$ sudo vi /etc/docker/daemon.json
+{ "insecure-registries": ["192.168.56.101:5000"],
+        "log-driver": "json-file",
+        "log-opts": {
+                "max-size": "30m",
+                "max-file": "10"
+        },
+        "storage-opts": ["overlay2.size=500m"]
+}
+~$ sudo systemctl restart docker.service
+~$ sudo systemctl status docker.service
+~$ docker stop mycontainer
+~$ docker rm mycontainer
+~$ docker run -it -v ${PWD}/myvolume:/webapp --name=mycontainer ubuntu:22.04 bash
+# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+overlay         500M  8.0K  500M   1% /
+...
+~$ sudo vi /etc/docker/daemon.json
+{ "insecure-registries": ["192.168.56.101:5000"],
+        "log-driver": "json-file",
+        "log-opts": {
+                "max-size": "30m",
+                "max-file": "10"
+        }
+}
+~$ sudo systemctl restart docker.service
+~$ sudo systemctl status docker.service
+~$ docker stop mycontainer
+~$ docker rm mycontainer
+~$ sudo su -
+~$ dd if=/dev/zero of=tmpdisk.img count=512 bs=1M
+~$ mkfs.xfs tmpdisk.img
+~$ fdisk -l tmpdisk.img
+~$ mkdir -p /home/tom/volume-quota
+~$ mount -o loop tmpdisk.img /home/tom/volume-quota
+~$ df -h
+...
+/dev/loop14     507M   30M  478M   6% /home/tom/volume-quota
+~$ chown -R tom.tom /home/tom/volume-quota
+~$ exit
+~$ docker run -it -v ${PWD}/volume-quota:/webapp --name=myvolume ubuntu:22.04 bash
+~$ df -h
+...
+/dev/loop14     507M   30M  478M   6% /webapp
+...
