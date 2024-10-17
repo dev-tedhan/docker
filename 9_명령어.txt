@@ -1,0 +1,146 @@
+~$ cd workspace
+~/workspace$ mkdir work06
+~/workspace$ cd work06
+~/workspace/work06$ docker build -h
+Dockerfile, index.html 붙여넣기
+
+~/workspace/work06$ vi index.html
+~/workspace/work06$ vi Dockerfile
+~/workspace/work06$ /workspace/work06$ docker build -t my-webserver:1.0 .
+~/workspace/work06$ docker images | grep my-webserver
+~/workspace/work06$ docker run -d --name=my-webserver -p 8001:80 my-webserver:1.0
+~/workspace/work06$ docker ps | grep my-webserver
+~/workspace/work06$ curl localhost:8001
+browser url: http://192.168.56.101:8001/
+~/workspace/work06$ docker image tag my-webserver:1.0 devtedhan/myapp:my-webserver1.0
+~/workspace/work06$ docker images
+~/workspace/work06$ docker push devtedhan/myapp:my-webserver1.0
+
+hostos2
+~$ docker pull devtedhan/myapp:my-webserver1.0
+~$ docker run -d --name=my-webserver -p 8001:80 devtedhan/myapp:my-webserver1.0
+~$ curl localhost:8001
+browser url: http://192.168.56.102:8001/
+
+hostos1
+/workspace/work06
+dockerfile-myweb1, 2, 3 붙여넣기
+
+~/workspace/work06$ docker build -t myweb:1.0 -f dockerfile-myweb1 --no-cache .
+1 warning found (use docker --debug to expand):
+ - MaintainerDeprecated: Maintainer instruction is deprecated in favor of using label 
+참고: https://wonit.tistory.com/345
+
+~/workspace/work06$ docker build -t myweb:2.0 -f dockerfile-myweb2 --no-cache .
+~/workspace/work06$ docker images | grep myweb
+~/workspace/work06$ docker build -t myweb:3.0 -f dockerfile-myweb3 --no-cache .
+~/workspace/work06$ docker images | grep myweb
+~/workspace/work06$ sudo apt -y install gcc
+go-to-lightweight-image.c 붙여넣기
+
+~/workspace/work06$ vi go-to-lightweight-image.c
+~/workspace/work06$ gcc --static -o go-to-lightweight-image go-to-lightweight-image.c
+~/workspace/work06$ ./go-to-lightweight-image
+dockerfile-scratch, dockerfile-ubuntu 붙여넣기
+
+~/workspace/work06$ vi dockerfile-ubuntu
+~/workspace/work06$ vi dockerfile-scratch
+~/workspace/work06$ docker build -t lightweight:1.0 -f dockerfile-ubuntu --no-cache .
+~/workspace/work06$ docker build -t lightweight:2.0 -f dockerfile-scratch --no-cache .
+~/workspace/work06$ docker run -it lightweight:1.0
+~/workspace/work06$ docker run -it lightweight:2.0
+~/workspace/work06$ docker images lightweight
+gostart.go 붙여넣기
+
+~/workspace/work06$ vi gostart.go
+dockerfile-go1, 2 붙여넣기
+
+~/workspace/work06$ docker build -t goapp:1.0 -f dockerfile-go1 --no-cache .
+~/workspace/work06$ docker build -t goapp:2.0 -f dockerfile-go2 --no-cache .
+~/workspace/work06$ docker images | grep goapp
+~/workspace/work06$ docker image history goapp:1.0
+~/workspace/work06$ docker image history goapp:2.0
+~/workspace/work06$ docker run --name goapp1 -p 9091:9090 -d -h goapp1 goapp:1.0
+~/workspace/work06$ docker run --name goapp2 -p 9092:9090 -d -h goapp2 goapp:2.0
+~/workspace/work06$ curl localhost:9091
+~/workspace/work06$ curl localhost:9092
+appstart.sh, dockerfile-app1, 2 붙여넣기
+
+~/workspace/work06$ vi appstart.sh
+~/workspace/work06$ vi dockerfile-app1
+~/workspace/work06$ vi dockerfile-app2
+~/workspace/work06$ chmod +x appstart.sh
+~/workspace/work06$ docker build -t webapp:1.0 -f dockerfile-app1 --no-cache .
+~/workspace/work06$ docker build -t webapp:2.0 -f dockerfile-app2 --no-cache .
+~/workspace/work06$ docker images | grep webapp
+dockerfile-add, webapp.tar.gz 붙여넣기
+
+~/workspace/work06$ vi dockerfile-add
+~/workspace/work06$ docker build -t myweb:3.0 -f dockerfile-add .
+~/workspace/work06$ docker run -d -p 8005:80 --name=myweb3 myweb:3.0
+~/workspace/work06$ curl localhost:8005
+browser url: http://192.168.56.101:8005/
+~/workspace/work06$ docker exec -it myweb3 ls -l /var/www/html
+app, dockerfile-py, .dockerignore 붙여넣기
+
+~/workspace/work06$ vi app/py_app.py
+~/workspace/work06$ vi dockerfile-py
+~/workspace/work06$ docker build -t py_flask:1.0 -f dockerfile-py .
+~/workspace/work06$ docker images | grep py_
+~/workspace/work06$ docker run -ti -p 9090:9000 -v ${PWD}/app:/py_app/app py_flask:1.0
+browser url: http://192.168.56.101:9090/
+~/workspace/work06$ docker ps -a
+~/workspace/work06$ docker start elated_shockley :이름은 직접 찾아서 적어야함.
+~/workspace/work06$ vi app/py_app.py
+...
+Docker container application: My Flask Updated!</h1>
+...
+browser url: http://192.168.56.101:9090/
+
+ch09-03 영상 마지막, "DIVE"는 좀 더 알아봐야 할 듯.
+
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+~/workspace/work06$ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
