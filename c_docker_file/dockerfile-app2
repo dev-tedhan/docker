@@ -1,0 +1,10 @@
+FROM ubuntu:22.04 AS v1-stage
+RUN apt-get update && apt-get install nginx -y
+WORKDIR /app
+COPY appstart.sh /app
+
+FROM alpine:3.12.1
+RUN addgroup -S appgroup && adduser -S tom -G appgroup -h /home/tom
+COPY --from=v1-stage /app /home/tom
+USER tom
+ENTRYPOINT ["sh","/home/tom/appstart.sh"]
