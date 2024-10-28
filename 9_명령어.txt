@@ -99,48 +99,59 @@ browser url: http://192.168.56.101:9090/
 
 ch09-03 영상 마지막, "DIVE"는 좀 더 알아봐야 할 듯.
 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
-~/workspace/work06$ 
+~$ cd workspace/
+~/workspace$ mkdir work07 
+~/workspace$ sudo chown -R tom work07
+~/workspace$ cd work07
+~/workspace/work07$ mkdir nexus-data
+~/workspace/work07$ docker run --name nexus -d -p 5001:5001 -p 8081:8081 -v ${PWD}/nexus-data:/nexus-data -u root --restart=always sonatype/nexus3
+~/workspace/work07$ docker ps | grep nexus
+browser url: http://192.168.56.101:8081/
 
+~/workspace/work07$ sudo cat nexus-data/admin.password
+~/workspace/work07$ docker exec -it nexus cat /nexus-data/admin.password
+id: admin
+pw:
+new pw: 1234
+Enable Anonymous Access
 
+~/workspace/work07$ sudo ls nexus-data/blobs/default/
+~/workspace/work07$ sudo vi /etc/docker/daemon.json
+{ "insecure-registries": ["192.168.56.101:5001"],
+...
 
+~/workspace/work07$ sudo systemctl restart docker
+~/workspace/work07$ docker info
+~/workspace/work07$ docker login http://192.168.56.101:5001
+admin
+1234
+~/workspace/work07$ docker image tag goapp:1.0 192.168.56.101:5001/goapp:1.0
+~/workspace/work07$ docker push 192.168.56.101:5001/goapp:1.0
 
+hostos2
+~$ docker pull 192.168.56.101:5001/goapp:1.0
+~$ sudo vi /etc/docker/daemon.json
+{ "insecure-registries": ["192.168.56.101:5001"] }
+~$ sudo systemctl restart docker
+~$ docker info
+~$ docker pull 192.168.56.101:5001/goapp:1.0
+~$ docker run -d -p 9090:9090 --name=goapp 192.168.56.101:5001/goapp:1.0
+~$ curl localhost:9090
 
+hostos1
+~/workspace$ mkdir work08
+~/workspace$ sudo chown tom work08
+~/workspace$ cd work08
+flask 붙여넣기
 
-
-
-
-
-
-
-
-
+~/workspace/work08$ 
+~/workspace/work08$ 
+~/workspace/work08$ 
+~/workspace/work08$ 
+~/workspace/work08$ 
+~/workspace/work08$ 
+~/workspace/work08$ 
+~/workspace/work08$ 
+~/workspace/work08$ 
+~/workspace/work08$ 
+~/workspace/work08$ 
